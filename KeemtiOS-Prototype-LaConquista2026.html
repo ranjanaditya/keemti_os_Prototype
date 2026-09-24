@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keemti OS — La Conquista 2026 Prototype</title>
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#12161f; --panel2:#171c28; --line:#232b3d;
+    --text:#e9edf5; --muted:#8b95a9; --gold:#d9b45f; --gold2:#f0d48a;
+    --good:#3ddc97; --warn:#ffb86b; --bad:#ff7a8a; --accent:#6ea8ff;
+    --radius:12px; --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%, #1c2340 0%, var(--bg) 55%);
+    color:var(--text); font-size:14px; line-height:1.45;
+  }
+  .topbar{
+    display:flex;align-items:center;gap:18px;padding:12px 22px;
+    border-bottom:1px solid var(--line); background:rgba(12,15,22,.85);
+    backdrop-filter:blur(8px); position:sticky; top:0; z-index:50;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700}
+  .brand .gem{width:26px;height:26px;border-radius:7px;transform:rotate(45deg);
+    background:linear-gradient(135deg,var(--gold),var(--gold2));box-shadow:0 0 16px rgba(212,175,55,.45)}
+  .brand b{font-size:16px}.brand span{color:var(--gold)}
+  .tagline{color:var(--muted);font-size:12px;letter-spacing:.5px;border-left:1px solid var(--line);padding-left:16px}
+  .live{margin-left:auto;display:flex;align-items:center;gap:7px;color:var(--good);font-size:12px;
+    background:rgba(61,220,151,.08);border:1px solid rgba(61,220,151,.25);padding:5px 12px;border-radius:999px}
+  .live i{width:8px;height:8px;border-radius:50%;background:var(--good);animation:pulse 1.6s infinite}
+  @keyframes pulse{50%{opacity:.3}}
+  .layout{display:flex;min-height:calc(100vh - 57px)}
+  nav{width:220px;padding:18px 14px;border-right:1px solid var(--line);flex-shrink:0;
+    display:flex;flex-direction:column;gap:4px;position:sticky;top:57px;height:calc(100vh - 57px);overflow:auto}
+  .navhead{font-size:10.5px;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);margin:14px 10px 6px}
+  .nav-item{
+    display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:var(--muted);
+    cursor:pointer;border:1px solid transparent;transition:.15s;font-size:13.5px;
+  }
+  .nav-item:hover{color:var(--text);background:rgba(255,255,255,.04)}
+  .nav-item.active{color:var(--gold2);background:linear-gradient(90deg,rgba(212,175,55,.14),transparent);border-color:rgba(212,175,55,.25)}
+  .nav-item .ic{width:18px;height:18px}
+  .nav-spacer{flex:1}
+  main{flex:1;padding:26px 30px 70px;overflow:auto}
+  .view{display:none}
+  .view.active{display:block;animation:fadein .25s}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .viewtitle{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:20px}
+  .viewtitle h1{font-size:21px;font-weight:700}
+  .viewtitle p{color:var(--muted);font-size:12.5px;margin-top:3px}
+  .chip{font-size:11px;color:var(--gold);border:1px solid rgba(212,175,55,.4);border-radius:999px;padding:4px 12px;background:rgba(212,175,55,.08);white-space:nowrap}
+  .grid{display:grid;gap:16px}
+  .cards{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
+  .kpi .lbl{font-size:11.5px;color:var(--muted);letter-spacing:.4px}
+  .kpi .val{font-size:26px;font-weight:750;margin:6px 0 2px}
+  .kpi .sub{font-size:11.5px}
+  .up{color:var(--good)} .down{color:var(--bad)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+  .panel h3{font-size:13.5px;font-weight:650;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+  .panel h3 em{font-style:normal;color:var(--muted);font-size:11.5px;font-weight:400}
+  .cols{grid-template-columns:2fr 1.4fr 1fr}
+  .row2{grid-template-columns:1.6fr 1fr}
+  .bar{background:var(--panel2);border:1px solid var(--line);border-radius:10px;height:10px;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:10px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .8s}
+  .bar i.g{background:linear-gradient(90deg,var(--good),#7ae8bd)}
+  .bar i.r{background:linear-gradient(90deg,#e0696f,var(--bad))}
+  .alertlist{display:flex;flex-direction:column;gap:9px}
+  .alrt{display:flex;gap:10px;align-items:flex-start;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px}
+  .alrt .tag{font-size:10px;padding:2px 8px;border-radius:999px;white-space:nowrap;margin-top:1px}
+  .tag.w{background:rgba(255,184,107,.15);color:var(--warn);border:1px solid rgba(255,184,107,.3)}
+  .tag.r{background:rgba(255,122,138,.14);color:var(--bad);border:1px solid rgba(255,122,138,.3)}
+  .tag.g{background:rgba(61,220,151,.13);color:var(--good);border:1px solid rgba(61,220,151,.3)}
+  .alrt b{display:block;font-size:12.5px}
+  .alrt span{color:var(--muted);font-size:11.5px}
+  .legend{display:flex;gap:14px;color:var(--muted);font-size:11px;margin-top:8px}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px}
+  .table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .table th{color:var(--muted);text-align:left;font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+  .table td{padding:9px 10px;border-bottom:1px solid rgba(35,43,61,.55)}
+  .table tbody tr{cursor:pointer;transition:.12s}
+  .table tbody tr:hover{background:rgba(255,255,255,.035)}
+  .badge{display:inline-block;font-size:10.5px;padding:2px 9px;border-radius:99px;border:1px solid;white-space:nowrap}
+  .badge.ok{color:var(--good);border-color:rgba(61,220,151,.4);background:rgba(61,220,151,.08)}
+  .badge.warn{color:var(--warn);border-color:rgba(255,184,107,.4);background:rgba(255,184,107,.08)}
+  .badge.mut{color:var(--muted);border-color:var(--line)}
+  .badge.gold{color:var(--gold2);border-color:rgba(212,175,55,.45);background:rgba(212,175,55,.09)}
+  .stonegrid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}
+  .stepbar{display:flex;margin-bottom:22px}
+  .step{flex:1;text-align:center;position:relative;color:var(--muted);font-size:12px}
+  .step .n{width:30px;height:30px;line-height:30px;border-radius:50%;margin:0 auto 8px;background:var(--panel2);border:1px solid var(--line);font-weight:700}
+  .step.on{color:var(--gold2)} .step.on .n{background:rgba(212,175,55,.18);border-color:var(--gold)}
+  .step.done{color:var(--good)} .step.done .n{background:rgba(61,220,151,.15);border-color:var(--good)}
+  .step::after{content:"";position:absolute;top:15px;left:calc(50% + 20px);width:calc(100% - 40px);height:1px;background:var(--line)}
+  .step:last-child::after{display:none}
+  .checkout{display:grid;grid-template-columns:1.35fr .9fr;gap:18px}
+  .btn{display:inline-block;border:none;border-radius:10px;padding:11px 22px;font-size:13px;font-weight:650;cursor:pointer;transition:.15s}
+  .btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#241a05}
+  .btn.gold:hover{filter:brightness(1.1);transform:translateY(-1px)}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn.ghost:hover{border-color:var(--gold)}
+  .timer{font-variant-numeric:tabular-nums;font-size:34px;font-weight:800;color:var(--gold2)}
+  .timer small{font-size:13px;color:var(--muted);font-weight:500}
+  .chain{display:flex;gap:8px;align-items:stretch;margin-top:14px;flex-wrap:wrap}
+  .chain .node{flex:1;min-width:130px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px}
+  .chain .node .t{font-size:10.5px;color:var(--gold);text-transform:uppercase;letter-spacing:1px}
+  .chain .node b{display:block;font-size:12px;margin:4px 0 1px}
+  .chain .node span{font-size:10.5px;color:var(--muted)}
+  .chain .node.ok{border-color:rgba(61,220,151,.45)}
+  .searchbar{display:flex;gap:10px;margin-bottom:16px}
+  .searchbar input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;color:var(--text);font-size:13.5px;outline:none}
+  .searchbar input:focus{border-color:var(--gold)}
+  .storecards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  .storecard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;cursor:pointer;transition:.15s}
+  .storecard:hover,.storecard.sel{border-color:var(--gold);transform:translateY(-2px)}
+  .storecard .top{display:flex;justify-content:space-between;align-items:center}
+  .storecard h4{font-size:14.5px}
+  .score{font-size:17px;font-weight:800}
+  .cust{display:flex;gap:12px;flex-wrap:wrap}
+  .cust .c{flex:1 1 220px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px}
+  .cust .c b{font-size:13px}
+  .footbar{position:fixed;bottom:0;left:0;right:0;text-align:center;font-size:11px;color:var(--muted);
+    border-top:1px solid var(--line);background:rgba(11,14,20,.92);padding:8px;z-index:40}
+  .toast{position:fixed;bottom:48px;right:26px;background:var(--panel2);border:1px solid var(--gold);
+    color:var(--gold2);padding:12px 18px;border-radius:10px;font-size:13px;box-shadow:var(--shadow);
+    opacity:0;transform:translateY(12px);transition:.25s;pointer-events:none;z-index:99}
+  .toast.show{opacity:1;transform:none}
+  .progress{height:6px;background:var(--panel2);border-radius:99px;overflow:hidden;border:1px solid var(--line);margin-top:8px}
+  .progress i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .5s}
+  .bars{display:flex;align-items:flex-end;gap:8px;height:140px;margin-top:8px}
+  .bars div{flex:1;background:linear-gradient(180deg,var(--gold),rgba(212,175,55,.25));border-radius:6px 6px 2px 2px;position:relative;transition:.3s;cursor:default}
+  .bars div:hover{filter:brightness(1.25)}
+  .bars div span{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:10px;color:var(--muted)}
+  .bars div i{position:absolute;top:-20px;left:0;right:0;text-align:center;font-size:10.5px;color:var(--gold2);opacity:0;transition:.2s}
+  .bars div:hover i{opacity:1}
+  .skuheat{display:flex;flex-direction:column;gap:9px}
+  .skuheat .row{display:grid;grid-template-columns:170px 1fr 46px;gap:10px;align-items:center;font-size:12px}
+  .skuheat .row b{font-weight:600;font-size:12px}
+  .bill{display:grid;place-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:26px;text-align:center}
+  .bill .lbl{font-size:17px;font-weight:750}
+  .bill .sub{color:var(--muted);font-size:12px;margin-top:4px}
+  .bill .big{font-size:44px;font-weight:850;font-variant-numeric:tabular-nums;color:var(--gold2);margin:10px 0 2px}
+  .k{font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;font-weight:600;display:block;margin:14px 0 6px}
+  .tag.gold{background:rgba(217,180,95,.13);color:var(--gold2);border:1px solid rgba(217,180,95,.3)}
+  .clgrid{display:grid;grid-template-columns:1.25fr .95fr;gap:14px;align-items:start}
+  .eventlog{display:flex;flex-direction:column;max-height:216px;overflow:hidden}
+  .evt-row{display:flex;align-items:center;gap:9px;padding:6px 10px;font-size:11.5px;border-bottom:1px solid rgba(35,43,61,.5);animation:evtpop .3s}
+  @keyframes evtpop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+  .evt-row .ts{color:var(--muted);opacity:.65;margin-left:auto;font-variant-numeric:tabular-nums;font-size:10.5px}
+  input[type=range]{width:100%;accent-color:var(--gold);cursor:pointer}
+  .phone{width:330px;max-width:100%;margin:0 auto;background:var(--panel2);border:1px solid var(--line2);border-radius:26px;padding:16px;box-shadow:var(--shadow)}
+  .approw{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px}
+  .approw b{font-size:12.5px}
+  .approw p{color:var(--muted);font-size:11px;margin-top:3px;line-height:1.45}
+  .qrwrap{display:flex;flex-direction:column;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .switch{width:36px;height:20px;border-radius:99px;background:var(--gold);position:relative;cursor:pointer;transition:.15s;flex-shrink:0}
+  .switch::after{content:"";position:absolute;top:3px;right:3px;width:14px;height:14px;border-radius:50%;background:#241a05}
+  .switch.off{background:var(--line2)}
+  .switch.off::after{right:auto;left:3px}
+  @media (max-width:1100px){.cols,.row2,.stonegrid,.checkout,.clgrid{grid-template-columns:1fr}
+    .layout{flex-direction:column}nav{width:100%;position:static;flex-direction:row;flex-wrap:wrap;height:auto}
+    nav .navhead,.nav-spacer{display:none}main{padding:18px 18px 70px}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><div class="gem"></div><b>Keemti<span>OS</span></b></div>
+  <div class="tagline">One Key · One Truth · One Experience — the retail operating ecosystem</div>
+  <div class="live"><i></i>Live · 7/7 stores connected</div>
+</header>
+
+<div class="layout">
+  <nav>
+    <div class="nav-item active" data-view="dashboard">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      Executive Cockpit
+    </div>
+    <div class="nav-item" data-view="inventory">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+      Traceability &amp; Inventory
+    </div>
+    <div class="nav-item" data-view="stores">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9l2 12h12l2-12"/><path d="M3 4h18l1 5a3.5 3.5 0 0 1-7 0 3.5 3.5 0 0 1-7 0 3.5 3.5 0 0 1-7 0z"/></svg>
+      Store Operations
+    </div>
+    <div class="nav-item" data-view="checkout">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16l-1.5 12h-13z"/><circle cx="10" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/></svg>
+      Checkout · CX Demo
+    </div>
+    <div class="nav-item" data-view="journey">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+      Customer Journey · App
+    </div>
+    <div class="nav-item" data-view="customers">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.6-3.6 4.6-5 8-5s6.4 1.4 8 5"/></svg>
+      Customer 360
+    </div>
+    <div class="nav-item" data-view="scale">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-6 4 4 6-8"/><path d="M15 7h4v4"/></svg>
+      Scale Command · 7→80
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-head">Modules</div>
+    <div class="alrt" style="cursor:default">
+      <span class="tag g">7/7</span>
+      <div><b>Stores onboarded</b><span>Replenishment engine live · trace ledger 100%</span></div>
+      <div style="margin-left:auto;color:var(--gold)">●</div>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ================= EXECUTIVE COCKPIT ================= -->
+    <section class="view active" id="v-dashboard">
+      <div class="viewtitle">
+        <div><h1>Executive Cockpit</h1><p>Connected store · factory · customer intelligence — refreshed every 30 sec</p></div>
+        <span class="chip">● LIVE · 30s refresh</span>
+      </div>
+
+      <div class="grid cards">
+        <div class="kpi"><div class="lbl">Stores operating</div><div class="val">7 / 7</div><div class="sub up">▲ plan: 80+ by Year 3</div></div>
+        <div class="kpi"><div class="lbl">Revenue MTD · all channels</div><div class="val">₹<span id="revVal">4.28</span> Cr</div><div class="sub up">▲ 18% vs plan</div></div>
+        <div class="kpi"><div class="lbl">Avg checkout time</div><div class="val"><span id="billVal">4:42</span></div><div class="sub up">▼ −73% vs legacy 15-20</div></div>
+        <div class="kpi"><div class="lbl">Inventory turns / yr</div><div class="val"><span id="turnVal">3.4</span></div><div class="sub up">▲ +1.1 vs pre-OS</div></div>
+        <div class="kpi"><div class="lbl">Stone traceability</div><div class="val"><span id="traceVal">100</span>%</div><div class="sub up">Full chain of custody</div></div>
+        <div class="kpi"><div class="lbl">NPS</div><div class="val"><span id="npsVal">71</span></div><div class="sub up">▲ 14 pts since OS rollout</div></div>
+      </div>
+
+      <div class="grid cols" style="margin-top:18px">
+        <div class="panel">
+          <h3>Retail sales — weekly (₹ Cr) <em>actual vs plan</em></h3>
+          <svg id="salesTrend" viewBox="0 0 520 190" style="width:100%;height:auto"></svg>
+          <div class="legend"><span><i style="background:var(--gold)"></i>Actual</span><span><i style="background:var(--muted)"></i>Plan</span></div>
+        </div>
+        <div class="panel">
+          <h3>Store leaderboard <em>MTD ₹ Lakh</em></h3>
+          <div id="leader" class="bars"></div>
+        </div>
+        <div class="panel">
+          <h3>Live exception feed</h3>
+          <div class="alertlist" id="alertFeed"></div>
+        </div>
+      </div>
+
+      <div class="grid row2" style="margin-top:18px">
+        <div class="panel">
+          <h3>SKU &amp; stone health <em>1,200 SKUs · per store</em></h3>
+          <div class="skuheat" id="skuHeat"></div>
+        </div>
+        <div class="panel">
+          <h3>Supply &amp; factory line</h3>
+          <table class="table">
+            <thead><tr><th>Work-stream</th><th>Status</th><th>Today</th><th>Signal</th></tr></thead>
+            <tbody>
+              <tr><td>Cutting &amp; polishing (WIP)</td><td><span class="badge ok">On track</span></td><td>312 pcs</td><td class="up">+6%</td></tr>
+              <tr><td>Certification (SGL) queue</td><td><span class="badge warn">5-day SL</span></td><td>48 stones</td><td>~ 2 days</td></tr>
+              <tr><td>Warehouse → stores</td><td><span class="badge ok">Synced</span></td><td>23 transfers</td><td class="up">99.2% on time</td></tr>
+              <tr onclick="window.gotoBuyback()"><td>Returns &amp; buy-back</td><td><span class="badge mut">Closed</span></td><td>4 items</td><td class="up">Recycle lot G-07</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="grid" style="margin-top:18px">
+        <div class="panel">
+          <h3>Responsible Business — the Conquest layer <em>trace · recycle · privacy · price</em></h3>
+          <div class="grid cards">
+            <div class="kpi"><div class="lbl">Stone traceability</div><div class="val">100%</div><div class="sub up">SGL-certified · custody on every stone</div></div>
+            <div class="kpi"><div class="lbl">Recycled gold · buy-back YTD</div><div class="val">4.1 kg</div><div class="sub up">life-time buyback · scaling to every store</div></div>
+            <div class="kpi"><div class="lbl">Customer data</div><div class="val">DPDP-ready</div><div class="sub up">consent-based profiles · opt-in marketing</div></div>
+            <div class="kpi"><div class="lbl">Price-accessibility gap</div><div class="val">~25%</div><div class="sub">below comparable market pricing</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid" style="margin-top:18px">
+        <div class="panel">
+          <h3>Integration spine — live business moments <em>one event per action · every system subscribed</em></h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+            <span class="chip">today: 2,41,870 events</span>
+            <span class="chip">MIS latency 30 s</span>
+            <span class="chip">factory ↔ stores: real-time</span>
+            <span class="chip">p95 publish &lt; 200 ms</span>
+          </div>
+          <div class="eventlog" id="evtLog"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TRACEABILITY ================= -->
+    <section class="view" id="v-inventory">
+      <div class="viewtitle">
+        <div><h1>Traceability &amp; Inventory Intelligence</h1><p>Every stone carries a digital twin — from lab-grown batch to store shelf</p></div>
+        <span class="chip">Serial-level ledger · 10,240 live stones</span>
+      </div>
+      <div class="searchbar">
+        <input id="stoneSearch" placeholder="Search stone serial, SKU or SGL certificate — try K-2107">
+        <button class="btn gold" onclick="showToast('Trace query running across factory · cert · warehouse · stores')">Trace</button>
+      </div>
+      <div class="stonegrid">
+        <div class="panel">
+          <h3>Stone registry <em id="regCount"></em></h3>
+          <table class="table">
+            <thead><tr><th>Serial</th><th>SKU</th><th>Carat</th><th>Spec</th><th>Price ₹</th><th>Status · location</th></tr></thead>
+            <tbody id="stoneList"></tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <h3>Chain of custody <em>immutable · real-time</em></h3>
+          <div id="stoneDetail"></div>
+        </div>
+      </div>
+      <div class="panel" id="buybackPanel" style="margin-top:16px">
+        <h3>Keemti Life-time Buyback — scaling an existing promise <em>pre-verified · same-day quote · payout in 48 hrs</em></h3>
+        <div class="grid row2">
+          <div>
+            <div class="alrt" style="cursor:default">
+              <span class="tag gold">STONE</span>
+              <div style="flex:1"><b id="bbStone">K-1982 · RNG-0891-C</b><span id="bbCert">SGL · HG-68112 · 0.55 ct · sold ₹78,900</span></div>
+              <span class="badge ok">Authentic</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px">
+              <div class="kpi"><div class="lbl">1 · Verify</div><div class="val" style="font-size:18px" id="bbStep1">—</div><div class="sub">Stone Twin match · SGL certificate · custody intact</div></div>
+              <div class="kpi"><div class="lbl">2 · Value</div><div class="val" style="font-size:18px" id="bbStep2">—</div><div class="sub">At prevailing buyback rate (87% of last-sold certified value) · BIS-hallmarked gold setting credited too</div></div>
+              <div class="kpi"><div class="lbl">3 · Payout</div><div class="val" style="font-size:18px" id="bbStep3">—</div><div class="sub">Voucher → NEFT in 48 hrs · or credit usable in-store today</div></div>
+            </div>
+          </div>
+          <div>
+            <div class="alrt" style="cursor:default;align-items:center">
+              <div style="flex:1"><b>Buyback quote</b><span>Stone Twin verifies instantly — no re-lab, no waiting, no paperwork</span></div>
+              <button class="btn gold" id="bbBtn" onclick="window.runBuyback()">Generate voucher</button>
+            </div>
+            <div id="bbResult" style="margin-top:12px;font-size:12.5px;color:var(--muted);line-height:1.6">
+              Select any stone in the registry above. This is Keemti's <b style="color:var(--gold2)">existing life-time buyback program</b> —
+              now pre-verified on the Stone Twin and available at every store, at every checkout.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= STORE OPERATIONS ================= -->
+    <section class="view" id="v-stores">
+      <div class="viewtitle">
+        <div><h1>Store Operations</h1><p>Standardized playbooks, zero-touch replenishment, health-scored stores</p></div>
+        <span class="chip">80-store expansion on a single operating system</span>
+      </div>
+      <div class="grid row2">
+        <div class="panel" style="grid-column:1/-1">
+          <h3>Store network <em>health = ops + CX + inventory compliance</em></h3>
+          <div class="storecards" id="storeGrid"></div>
+        </div>
+        <div class="panel">
+          <h3>Replenishment engine <em>auto-suggested — pre-act, not react</em></h3>
+          <div id="replList" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+        <div class="panel">
+          <h3>Transfer view <em>warehouse → store · live</em></h3>
+          <table class="table">
+            <thead><tr><th>Order</th><th>From → To</th><th>ETA</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>TR-8841</td><td>BLR DC → Delhi CP</td><td>1 day</td><td><span class="badge ok">In transit</span></td></tr>
+              <tr><td>TR-8837</td><td>BLR DC → Hyderabad</td><td>Today</td><td><span class="badge ok">Out for delivery</span></td></tr>
+              <tr><td>TR-8829</td><td>Mumbai → Pune</td><td>Tomorrow</td><td><span class="badge warn">Reroute needed</span></td></tr>
+              <tr><td>TR-8821</td><td>Surat Plant → BLR DC</td><td>2 days</td><td><span class="badge mut">Awaiting cert</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel" style="grid-column:1/-1">
+          <h3>AI decision log — today <em>auto-decisions with reasons · every override visible</em></h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+            <span class="chip">142 decisions</span>
+            <span class="chip">86% auto-approved</span>
+            <span class="chip">3 store overrides</span>
+            <span class="chip">avg decision latency 30 s</span>
+          </div>
+          <table class="table">
+            <thead><tr><th>Time</th><th>Decision</th><th>Reason (why the model acted)</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td class="w">09:41</td><td class="b">Replenish RNG-0891-C → Pune ×6</td><td class="w">festival pulse +27% · 3 days to stockout</td><td><span class="badge ok">AUTO</span></td></tr>
+              <tr><td class="w">10:12</td><td class="b">Reallocate S-PEND-0900 Delhi → Jaipur</td><td class="w">58-day dwell · Jaipur wedding wave</td><td><span class="badge ok">AUTO</span></td></tr>
+              <tr><td class="w">11:02</td><td class="b">Price corridor tip — EAR-2310-B</td><td class="w">velocity dropped 2σ · corridor −3%</td><td><span class="badge gold">TO REVIEW</span></td></tr>
+              <tr><td class="w">11:47</td><td class="b">Hold transfer TR-8829 Mumbai → Pune</td><td class="w">store-manager edit · high-value display piece</td><td><span class="badge warn">OVERRIDE</span></td></tr>
+              <tr><td class="w">12:03</td><td class="b">Restock CHN-0455-P Bengaluru MG</td><td class="w">SGL cert batch released · demand model +14%</td><td><span class="badge ok">AUTO</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CHECKOUT DEMO ================= -->
+    <section class="view" id="v-checkout">
+      <div class="viewtitle">
+        <div><h1>Checkout — the 4-minute promise</h1><p>Assisted sell → scan → digital cert → invoice. From 20 minutes to under 5.</p></div>
+        <span class="chip">Pilot avg 4:42 · target &lt; 5:00</span>
+      </div>
+      <div class="checkout">
+        <div class="panel">
+          <h3>Live checkout flow — store simulator</h3>
+          <div class="stepbar">
+            <div class="step on" id="st1"><div class="n">1</div>Scan &amp; Sell</div>
+            <div class="step" id="st2"><div class="n">2</div>Price + Cert</div>
+            <div class="step" id="st3"><div class="n">3</div>Confirm &amp; Invoice</div>
+          </div>
+          <div class="clgrid">
+            <div>
+              <div id="payCard" style="background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:18px">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+                  <div><b style="font-size:15px">K-2107 · Solitaire pendant</b><br><span style="color:var(--muted);font-size:12px">LGD · 0.82 ct · SGL #HG-68378</span></div>
+                  <span class="badge gold">₹1,24,500</span>
+                </div>
+                <div class="progress" id="ckprog"><i></i></div>
+                <div style="display:flex;justify-content:space-between;margin-top:10px;color:var(--muted);font-size:12px">
+                  <span id="ckstatus">Waiting to start scan…</span>
+                  <span id="cktime" style="font-weight:700;color:var(--gold2);font-variant-numeric:tabular-nums">0:00</span>
+                </div>
+              </div>
+              <div style="display:flex;gap:10px;margin-top:16px">
+                <button class="btn gold" id="nextBtn" onclick="checkoutNext()">Start scan →</button>
+                <button class="btn ghost" onclick="resetCheckout()">Reset demo</button>
+              </div>
+            </div>
+            <div style="background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+                <div><b style="font-size:14px">Aditya Ranjan (ISB)</b><br><span style="color:var(--muted);font-size:11.5px">3rd visit this quarter · promoter · joined 11 mo ago</span></div>
+                <span class="badge gold">GOLD TIER</span>
+              </div>
+              <div class="k">Her history</div>
+              <div class="alrt" style="cursor:default;padding:8px 10px"><span class="tag g">RING</span><div style="flex:1"><b style="font-size:11.5px">RNG-0891-C · engagement ring</b><span>K-1982 · ₹78,900 · Nov ’25</span></div></div>
+              <div class="alrt" style="cursor:default;padding:8px 10px;margin-top:6px"><span class="tag g">STUDS</span><div style="flex:1"><b style="font-size:11.5px">EAR-2310-B · ear studs</b><span>K-1734 · ₹1,98,000 · Jul ’25</span></div></div>
+              <div class="k">Suggested — from Item Master</div>
+              <div class="alrt" style="cursor:default;padding:8px 10px"><span class="tag w">GIFT</span><div style="flex:1"><b style="font-size:11.5px">SND-0877-G · solitaire</b><span>K-1298 · ₹71,250 · Feb 14 moment</span></div></div>
+              <div class="alrt" style="cursor:default;padding:8px 10px;margin-top:6px"><span class="tag w">PAIR</span><div style="flex:1"><b style="font-size:11.5px">CHN-0455-P · chain</b><span>K-1021 · ₹1,02,300 · pairs with her pendant</span></div></div>
+              <div style="margin-top:10px;font-size:10.5px;color:var(--muted)">Suggestions pull from Item Master via her purchase history — assisted sell, not a generic feed. If a piece isn’t in-store, we offer a 48-hr transfer instead of a stockout.</div>
+            </div>
+          </div>
+          <div style="margin-top:14px;font-size:12px;color:var(--muted)" id="stepNote">Step 1: scan stone serial → pre-filled price matrix &amp; certification auto-load</div>
+        </div>
+        <div class="panel">
+          <h3>What changed</h3>
+          <div style="display:flex;gap:14px;align-items:baseline;margin-bottom:18px">
+            <span class="timer" style="color:var(--bad);font-size:28px">15-20</span>
+            <span style="color:var(--muted)">→</span>
+            <span class="timer" id="newTime">04:42</span>
+          </div>
+          <div class="skuheat" style="gap:13px">
+            <div class="row"><b>Pre-filled price matrix</b><div class="bar"><i style="width:100%"></i></div><span>auto</span></div>
+            <div class="row"><b>Digital cert + e-invoice</b><div class="bar"><i style="width:96%"></i></div><span>auto</span></div>
+            <div class="row"><b>Manual data entry</b><div class="bar"><i class="r" style="width:6%"></i></div><span>6%</span></div>
+            <div class="row"><b>Transaction latency</b><div class="bar"><i style="width:100%"></i></div><span>real-time</span></div>
+            <div class="row"><b>Post-purchase journey</b><div class="bar"><i style="width:100%"></i></div><span>built-in</span></div>
+          </div>
+          <div style="margin-top:16px;background:rgba(61,220,151,.07);border:1px solid rgba(61,220,151,.3);border-radius:10px;padding:12px;font-size:12.5px;color:var(--good)">
+            ★ ~5.5 hrs/day saved per store team (~22 bills × 15 min) · 4× faster handover into the post-purchase journey
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CUSTOMER 360 ================= -->
+    <section class="view" id="v-customers">
+      <div class="viewtitle">
+        <div><h1>Customer 360 &amp; loyalty</h1><p>One profile across online and in-store — lifecycle-driven journeys</p></div>
+        <span class="chip">19,400 enriched profiles</span>
+      </div>
+      <div class="grid cards" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+        <div class="kpi"><div class="lbl">Repeat purchase rate</div><div class="val">34%</div><div class="sub up">▲ 8 pts YTD</div></div>
+        <div class="kpi"><div class="lbl">Avg order value</div><div class="val">₹68K</div><div class="sub up">▲ +9%</div></div>
+        <div class="kpi"><div class="lbl">Store↔online cross-sell</div><div class="val">22%</div><div class="sub up">unified cart</div></div>
+        <div class="kpi"><div class="lbl">Recycled gold · buy-back</div><div class="val">4.1 kg</div><div class="sub up">life-time buyback YTD · low-carbon ledger</div></div>
+      </div>
+      <div class="grid row2" style="margin-top:18px">
+        <div class="panel">
+          <h3>Personas &amp; triggered moments <em>rules engine</em></h3>
+          <div class="cust">
+            <div class="c"><b>Bride-to-be</b><p style="color:var(--muted);font-size:12px;margin-top:4px">Ring search → virtual try-on → booked in-store slot</p></div>
+            <div class="c"><b>Repeat gifter</b><p style="color:var(--muted);font-size:12px;margin-top:4px">Anniversary &amp; milestone reminders, swap-up offers · buy-back credit rolls into the next purchase</p>
+              <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center">
+                <span class="badge gold">GOLD TIER</span>
+                <span style="font-size:10px;color:var(--gold2)">2 buybacks → Platinum</span>
+              </div>
+              <div class="bar" style="margin-top:6px"><i style="width:72%"></i></div>
+            </div>
+            <div class="c"><b>Cert-seeker</b><p style="color:var(--muted);font-size:12px;margin-top:4px">Live chain-of-custody link on chat at purchase</p></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>NPS feedback <em>last 30 days</em></h3>
+          <div class="bill" style="margin-top:6px">
+            <div class="lbl">NPS</div>
+            <div class="big">71</div>
+            <div class="sub">promoters 52% · detractors 2%</div>
+          </div>
+          <div class="progress" style="margin-top:14px"><i style="width:71%"></i></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CUSTOMER JOURNEY ================= -->
+    <section class="view" id="v-journey">
+      <div class="viewtitle">
+        <div><h1>Customer Journey — the app their promise lives in</h1><p>The consumer view of everything the OS makes possible: one stone, one truth, one experience</p></div>
+        <span class="chip">Aditya Ranjan (ISB) · Gold tier</span>
+      </div>
+      <div class="grid" style="grid-template-columns:minmax(300px,340px) 1fr;align-items:start">
+        <div class="phone">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <b style="font-size:14px">My Keemti</b>
+            <span class="badge gold">GOLD TIER</span>
+          </div>
+          <div class="approw">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><b>K-2107 · Pendant</b><p>Order #21893 · delivered Dec ’26</p></div>
+              <span class="badge ok">Delivered</span>
+            </div>
+            <button class="btn ghost" style="width:100%;margin-top:8px;padding:8px" onclick="window.toggleCustody(this)">View my stone’s journey</button>
+            <div id="custodyBox" style="display:none;margin-top:8px">
+              <div class="chain" style="margin-top:6px">
+                <div class="node ok"><div class="t">Factory</div><b>Surat lot FG-221</b><span>grown to cut</span></div>
+                <div class="node ok"><div class="t">Certified</div><b>SGL · HG-68378</b><span>0.82 ct · VS1</span></div>
+                <div class="node ok"><div class="t">Store</div><b>Delhi CP</b><span>sold Dec ’26</span></div>
+              </div>
+              <div style="font-size:10.5px;color:var(--muted);margin-top:6px">BIS-hallmarked 18k setting · SGL certificate linked · custody record end to end</div>
+            </div>
+          </div>
+          <div class="approw">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><b>Video try-on</b><p>Concierge — Bandra store · Thu 6:30 PM</p></div>
+              <button class="btn ghost" style="padding:6px 12px;font-size:11px" onclick="window.bookTryOn(this)">Book</button>
+            </div>
+          </div>
+          <div class="approw">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+              <div><b>Buy-back credit</b><p>Life-time promise · quote in 30 sec</p></div>
+              <span class="badge gold">₹68,643</span>
+            </div>
+            <button class="btn gold" style="width:100%;margin-top:8px;padding:8px" onclick="window.gotoBuyback()">Instant quote</button>
+          </div>
+          <div class="approw">
+            <b>Scan the QR on your Keemti box</b><p>Verify your stone in two taps — no store visit needed</p>
+            <div id="qrBox" style="margin-top:8px">
+              <div class="qrwrap">
+                <svg width="110" height="110" viewBox="0 0 21 21" shape-rendering="crispEdges">
+                  <rect x="1" y="1" width="6" height="6" fill="#d9b45f"/>
+                  <rect x="2" y="2" width="4" height="4" fill="#12161f"/>
+                  <rect x="14" y="1" width="6" height="6" fill="#d9b45f"/>
+                  <rect x="15" y="2" width="4" height="4" fill="#12161f"/>
+                  <rect x="1" y="14" width="6" height="6" fill="#d9b45f"/>
+                  <rect x="2" y="15" width="4" height="4" fill="#12161f"/>
+                  <rect x="8" y="1" width="1" height="1" fill="#d9b45f"/>
+                  <rect x="10" y="2" width="1" height="1" fill="#d9b45f"/>
+                  <rect x="11" y="4" width="1" height="1" fill="#d9b45f"/>
+                  <rect x="9" y="6" width="1" height="1" fill="#d9b45f"/>
+                  <rect x="8" y="8" width="1" height="1" fill="#d9b45f"/>
+                  <rect x="12" y="7" width="1" height="1" fill="#d9b45f"/>
+                  <rect x="10" y="9" width="1" height="1" fill="#d9b45f"/>
+                  <rect x="11" y="11" width="1" height="1" fill="#d9b45f"/>
+                  <rect x="9" y="12" width="1" height="1" fill="#d9b45f"/>
+                  <rect x="13" y="9" width="1" height="1" fill="#d9b45f"/>
+                  <rect x="14" y="11" width="1" height="1" fill="#d9b45f"/>
+                  <rect x="15" y="14" width="1" height="1" fill="#d9b45f"/>
+                  <rect x="12" y="14" width="1" height="1" fill="#d9b45f"/>
+                  <rect x="9" y="15" width="1" height="1" fill="#d9b45f"/>
+                </svg>
+                <button class="btn gold" style="margin-top:8px;padding:8px 14px" onclick="window.scanQR()">Scan QR</button>
+              </div>
+            </div>
+          </div>
+          <div class="approw" style="display:flex;align-items:center;gap:10px">
+            <div style="flex:1"><b>Marketing consent</b><p>DPDP-ready · opt-in only · nothing sold</p></div>
+            <div class="switch" id="consent" onclick="window.toggleConsent()"></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="panel"><h3>One stone, one customer truth <em>omnichannel — from shelf to hand</em></h3>
+            <div style="font-size:12px;color:var(--muted);line-height:1.6">The same Stone Twin the factory writes is what this customer reads. SGL certificate, BIS hallmark, full custody — <b style="color:var(--gold2)">no “contact support” dead-ends, no verification queues</b>. Post-purchase is where jewellery trust is actually made; we put the OS there.</div>
+          </div>
+          <div class="panel"><h3>Post-purchase becomes the next purchase <em>assisted · lifecycle-driven</em></h3>
+            <div style="font-size:12px;color:var(--muted);line-height:1.6">Appraisal reminders, active insurance, home pick-up for recycling, buy-back credit that rolls into the next piece — every moment tracked, none of it spam. That is how repeat purchase moves 26% → 34% and NPS 57 → 71.</div>
+          </div>
+          <div class="panel"><h3>DPDP by design <em>responsible, not reactive</em></h3>
+            <div style="font-size:12px;color:var(--muted);line-height:1.6">Consent-first profiles, opt-in channels, zero data sales. The same architecture that powers growth powers the customer’s right to say no — and the toggle here is real, not wallpaper.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SCALE COMMAND ================= -->
+    <section class="view" id="v-scale">
+      <div class="viewtitle">
+        <div><h1>Scale Command — 7 → 80 on one slider</h1><p>Drag the network size; every operating number recomputes from pilot economics</p></div>
+        <span class="chip">What-if model · assumptions on the right</span>
+      </div>
+      <div class="grid row2">
+        <div class="panel">
+          <h3>Network slider <em id="sPhase">Phase 0 · Stabilize</em></h3>
+          <div class="bill" style="padding:14px 18px;margin-bottom:12px">
+            <div class="lbl">stores live</div>
+            <div class="big" id="sStoresBig" style="font-size:52px">7</div>
+          </div>
+          <input type="range" id="sSlider" min="7" max="80" step="1" value="7">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px">
+            <span>7 · today</span><span>20 · P1</span><span>50 · P2</span><span>80 · plan</span>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:16px">
+            <button class="btn gold" onclick="window.runScale()">Run 7 → 80</button>
+            <button class="btn ghost" onclick="window.resetScale()">Reset to 7</button>
+          </div>
+        </div>
+        <div class="grid cards" style="align-content:start">
+          <div class="kpi"><div class="lbl">Run-rate (₹ Cr / yr)</div><div class="val" id="sRun">35</div><div class="sub">₹0.42 Cr → ₹0.50 Cr avg MTD / store</div></div>
+          <div class="kpi"><div class="lbl">Live stones · Stone Twin</div><div class="val" id="sStones">10,240</div><div class="sub">serial-level · SGL certified</div></div>
+          <div class="kpi"><div class="lbl">SKU–store cells</div><div class="val" id="sCells">8,400</div><div class="sub">1,200 SKUs per store</div></div>
+          <div class="kpi"><div class="lbl">Auto-replenishment</div><div class="val" id="sAuto">20%</div><div class="sub up">→ 85% by phase 3</div></div>
+          <div class="kpi"><div class="lbl">Inventory turns / yr</div><div class="val" id="sTurns">2.3</div><div class="sub up">→ 3.4 at 80</div></div>
+          <div class="kpi"><div class="lbl">NPS</div><div class="val" id="sNps">57</div><div class="sub up">→ 71 at 80</div></div>
+        </div>
+        <div class="panel" style="grid-column:1/-1">
+          <h3>Model assumptions <em>the same figures the deck carries</em></h3>
+          <div style="font-size:11.5px;color:var(--muted);line-height:1.6">
+            Avg store MTD ₹0.42 Cr today → ₹0.50 Cr at 80 (tier-1 city mix) · 1,200 SKUs / store ·
+            baseline billing 15-20 → target 4:42 (−73%) · dead stock 14% → 7.5% · NPS 57 → 71 ·
+            numbers are committed targets validated by the 7-store pilot (Jan–Oct 2026), re-based quarterly.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="footbar">Keemti OS · La Conquista 2026 prototype · build v1.2 — product: enterprise platforms</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- utils ---------- */
+  var $ = function(id){ return document.getElementById(id); };
+  var toastEl = document.getElementById("toast");
+  var toastT = null;
+  window.showToast = function(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastT);
+    toastT = setTimeout(function(){ toastEl.classList.remove("show"); }, 2400);
+  };
+
+  /* ---------- navigation ---------- */
+  var navs = document.querySelectorAll(".nav-item");
+  for (var i = 0; i < navs.length; i++) {
+    (function(item){
+      item.addEventListener("click", function(){
+        for (var j = 0; j < navs.length; j++) navs[j].classList.remove("active");
+        item.classList.add("active");
+        var views = document.querySelectorAll(".view");
+        for (var k = 0; k < views.length; k++) views[k].classList.remove("active");
+        $("v-" + item.getAttribute("data-view")).classList.add("active");
+      });
+    })(navs[i]);
+  }
+
+  /* ---------- data ---------- */
+  var stores = [
+    { n:"Delhi · Connaught Place",  sc:38.2, h:96, sku:"1,190", turns:"4.1", alerts:2 },
+    { n:"Mumbai · Bandra",         sc:34.9, h:93, sku:"1,196", turns:"3.9", alerts:4 },
+    { n:"Bengaluru · MG Road",      sc:29.4, h:90, sku:"1,184", turns:"3.6", alerts:3 },
+    { n:"Hyderabad · Banjara",      sc:24.1, h:87, sku:"1,178", turns:"3.1", alerts:2 },
+    { n:"Pune · FC Road",           sc:21.8, h:85, sku:"1,175", turns:"2.9", alerts:5 },
+    { n:"Chennai · T. Nagar",       sc:19.2, h:82, sku:"1,168", turns:"2.6", alerts:4 },
+    { n:"Jaipur · MI Road",         sc:16.7, h:80, sku:"1,162", turns:"2.2", alerts:6 }
+  ];
+
+  var stones = [
+    { s:"K-2107", sku:"S-PEND-1024", ct:0.82, spec:"VS1 · D · 3EX", price:"1,24,500", cert:"SGL · HG-68378", st:"IN STORE",  loc:"Delhi CP" },
+    { s:"K-1982", sku:"RNG-0891-C",  ct:0.55, spec:"VVS2 · E · 3EX", price:"78,900",  cert:"SGL · HG-68112", st:"IN STORE",  loc:"Mumbai Bandra" },
+    { s:"K-1734", sku:"EAR-2310-B",  ct:1.02, spec:"VVS1 · D · 3EX", price:"1,98,000",cert:"SGL · HG-67900", st:"RESERVED", loc:"Bengaluru MG" },
+    { s:"K-1551", sku:"BRC-1144-A",  ct:0.68, spec:"VS1 · F · 2EX",  price:"92,400",  cert:"SGL · HG-67441", st:"IN TRANSIT",loc:"→ Hyderabad" },
+    { s:"K-1298", sku:"SND-0877-G",  ct:0.46, spec:"VS2 · G · 3EX",  price:"71,250",  cert:"SGL · HG-66890", st:"IN TRANSIT",loc:"→ Pune" },
+    { s:"K-1021", sku:"CHN-0455-P",  ct:0.66, spec:"VVS2 · E · 3EX", price:"1,02,300",cert:"SGL · HG-66102", st:"AT CERT",   loc:"SGL lab" }
+  ];
+
+  var repl = [
+    { sto:"Delhi CP", sku:"S-PEND-1024", q:"4 pcs", why:"velocity 2.1σ · 3 days to stockout", lv:"high" },
+    { sto:"Pune",     sku:"RNG-0891-C",  q:"6 pcs", why:"festival pulse +27%",              lv:"high" },
+    { sto:"Chennai",  sku:"EAR-2310-B",  q:"3 pcs", why:"under-allocation last cycle",       lv:"med" },
+    { sto:"Jaipur",   sku:"STN-8002-K",  q:"8 pcs", why:"wedding wave · JAN",                lv:"med" }
+  ];
+
+  /* ---------- dashboard: sales trend ---------- */
+  var trend = [2.1,2.4,2.2,2.7,2.9,2.6,3.1,3.4,3.2,3.8,3.6,4.1];
+  var trendP = [2.3,2.5,2.6,2.8,3.0,3.1,3.2,3.3,3.5,3.7,3.8,3.9];
+  (function(){
+    var W=520, H=190, pad=28, max=4.5, n=trend.length;
+    var x=function(i){ return pad + i*(W-pad*2)/(n-1); };
+    var y=function(v){ return H-pad - (v/max)*(H-pad*2); };
+    var pathFrom = function(arr){
+      var d="";
+      for (var i=0;i<n;i++) d += (i?"L":"M") + x(i).toFixed(1) + " " + y(arr[i]).toFixed(1);
+      return d;
+    };
+    var a = pathFrom(trend);
+    var b = pathFrom(trendP);
+    var fill = a + " L" + x(n-1).toFixed(1) + "," + (H-8) + " L" + x(0).toFixed(1) + "," + (H-8) + " Z";
+    var s = '<path d="'+a+'" fill="none" stroke="#d9b45f" stroke-width="2.5" stroke-linejoin="round"/>'
+          + '<path d="'+fill+'" fill="#d9b45f" opacity="0.09"/>'
+          + '<path d="'+b+'" fill="none" stroke="#8b95a9" stroke-width="1.6" stroke-dasharray="5 4" opacity=".7"/>';
+    for (var v=0; v<=4; v++){
+      s += '<line x1="'+pad+'" y1="'+y(v)+'" x2="'+(W-8)+'" y2="'+y(v)+'" stroke="#1c2130" stroke-width="1"/>';
+      s += '<text x="4" y="'+(y(v)+3)+'" font-size="9" fill="#5b6478">'+v+'</text>';
+    }
+    for (var i=0;i<n;i++){
+      s += '<text x="'+x(i)+'" y="'+(H-4)+'" font-size="9" fill="#5b6478" text-anchor="middle">W'+i+'</text>';
+    }
+    s += '<circle cx="'+x(9)+'" cy="'+y(trend[9])+'" r="4" fill="#f0d48a"/>';
+    s += '<text x="'+(x(9)-6)+'" y="'+(y(trend[9])-10)+'" font-size="10" fill="#f0d48a">₹3.8 Cr</text>';
+    $("salesTrend").innerHTML = s;
+  })();
+
+  /* ---------- dashboard: leaderboard ---------- */
+  (function(){
+    var sorted = stores.slice().sort(function(a,b){ return b.sc-a.sc; }).slice(0,5);
+    var max = sorted[0].sc, html = "";
+    for (var i=0;i<sorted.length;i++){
+      var s = sorted[i];
+      var city = s.n.split("·")[1].trim();
+      html += '<div title="'+s.n+'"><i>'+s.sc+'</i>'
+            + '<div style="height:'+Math.round(s.sc/max*100)+'%;min-height:16px"></div>'
+            + '<span>'+city+'</span></div>';
+    }
+    $("leader").innerHTML = html;
+  })();
+
+  /* ---------- dashboard: SKU health ---------- */
+  (function(){
+    var rows = [
+      ["Fast movers · auto-restock", 95, "g"],
+      ["Slow movers (>45 days)",     64, ""],
+      ["Dead stock (≥60 days)",      14, "r"],
+      ["Cross-store re-allocated",   78, "g"],
+      ["At certification",           22, ""]
+    ];
+    var html = "";
+    for (var i=0;i<rows.length;i++){
+      html += '<div class="row"><b>'+rows[i][0]+'</b><div class="bar"><i class="'+rows[i][2]+'" style="width:'+rows[i][1]+'%"></i></div><span>'+rows[i][1]+'%</span></div>';
+    }
+    $("skuHeat").innerHTML = html;
+  })();
+
+  /* ---------- dashboard: alerts ---------- */
+  $("alertFeed").innerHTML =
+    '<div class="alrt"><span class="tag w">WIP</span><div><b>Certification SL risk — 48 stones</b><span>SGL batch #2210 · est. +2 days</span></div></div>' +
+    '<div class="alrt"><span class="tag r">STOCK</span><div><b>Pune — 3 SKUs at shelf-risk</b><span>auto transfer suggested &amp; approved</span></div></div>' +
+    '<div class="alrt"><span class="tag g">CX</span><div><b>Checkout 4:42 (−73%)</b><span>Delhi CP hit 3:58 at peak hour</span></div></div>' +
+    '<div class="alrt"><span class="tag w">INV</span><div><b>Dead stock 14% → target &lt;7.5%</b><span>cross-store reallocation running</span></div></div>' +
+    '<div class="alrt"><span class="tag g">TRUST</span><div><b>Traceability 100% of live stock</b><span>cert copy auto-attached to invoices</span></div></div>';
+
+  /* ---------- stone registry ---------- */
+  var currentIdx = 0;
+  var statusClass = function(st){
+    if (st.indexOf("IN STORE") === 0) return "ok";
+    if (st === "RESERVED") return "gold";
+    if (st.indexOf("TRANSIT") === 0) return "warn";
+    return "warn";
+  };
+  function renderStones(filter){
+    filter = (filter || "").toLowerCase();
+    var list = stones.filter(function(s){
+      return !filter || s.s.toLowerCase().indexOf(filter) > -1
+        || s.sku.toLowerCase().indexOf(filter) > -1
+        || s.cert.toLowerCase().indexOf(filter) > -1;
+    });
+    $("regCount").textContent = list.length + " shown of " + stones.length;
+    var html = "";
+    for (var i=0;i<list.length;i++){
+      var idx = stones.indexOf(list[i]);
+      var s = list[i];
+      html += '<tr onclick="window.selectStone('+idx+')" style="'+(idx===currentIdx?'background:rgba(212,175,55,.08)':'')+'">'
+            + '<td><b>'+s.s+'</b></td><td>'+s.sku+'</td><td>'+s.ct+'</td><td>'+s.spec+'</td><td>₹'+s.price+'</td>'
+            + '<td><span class="badge '+statusClass(s.st)+'">'+s.st+'</span> · '+s.loc+'</td></tr>';
+    }
+    $("stoneList").innerHTML = html;
+  }
+  window.selectStone = function(idx){
+    currentIdx = idx;
+    renderStones();
+    renderDetail(idx);
+    renderBuyback(idx);
+  };
+  var bbDone = false;
+  function renderBuyback(idx){
+    if (bbDone) return;
+    var s = stones[idx];
+    $("bbStone").textContent = s.s + " · " + s.sku;
+    $("bbCert").textContent = s.cert + " · " + s.ct + " ct · sold ₹" + s.price;
+    $("bbStep1").textContent = "—";
+    $("bbStep2").textContent = "—";
+    $("bbStep3").textContent = "—";
+  }
+  window.runBuyback = function(){
+    if (bbDone) return;
+    var s = stones[currentIdx];
+    var value = Math.round(parseInt(s.price.replace(/,/g,""),10) * 0.87);
+    var quote = "₹" + value.toLocaleString("en-IN");
+    $("bbStep1").innerHTML = '<span class="up">Verified ✓</span>';
+    $("bbStep2").textContent = quote;
+    $("bbStep3").textContent = quote;
+    $("bbResult").innerHTML =
+      '<div style="background:rgba(61,220,151,.07);border:1px solid rgba(61,220,151,.3);border-radius:10px;padding:12px;color:var(--good)">' +
+      'Voucher <b>VB-22911</b> issued for <b>'+s.s+'</b> — payout NEFT in 48 hrs · chain-of-custody shared with customer · recycled-gold credit noted at in-store checkout</div>';
+    document.getElementById("bbBtn").disabled = true;
+    document.getElementById("bbBtn").textContent = "✓ Voucher issued";
+    bbDone = true;
+    showToast("Buyback voucher VB-22911 created — payout NEFT within 48 hrs");
+  };
+  window.gotoBuyback = function(){
+    var navs = document.querySelectorAll(".nav-item");
+    for (var i=0;i<navs.length;i++){
+      navs[i].classList.toggle("active", navs[i].getAttribute("data-view")==="inventory");
+    }
+    var views = document.querySelectorAll(".view");
+    for (var k=0;k<views.length;k++) views[k].classList.remove("active");
+    $("v-inventory").classList.add("active");
+    setTimeout(function(){ document.getElementById("buybackPanel").scrollIntoView({behavior:"smooth", block:"start"}); }, 80);
+    showToast("Life-time buyback flow opened — pre-verified same-day quote");
+  };
+  function renderDetail(idx){
+    var s = stones[idx];
+    var steps = [
+      { t:"Factory",     b:"Batch FG-221 · cut & polish", loc:"Keemti Unit · Surat", on:true },
+      { t:"Certified",   b:s.cert.replace(" · "," · "),   loc:"SGL Lab",             on:true },
+      { t:"Warehouse",   b:"Bin B1 · secure vault",       loc:"Bengaluru DC",        on:s.st.indexOf("AT CERT") !== 0 },
+      { t:"Store",       b:"Shelf A-12 · display",        loc:s.loc,                 on:s.st === "IN STORE" },
+      { t:"Status",      b:s.st,                          loc:s.loc,                 on:true }
+    ];
+    var html =
+      '<div style="display:flex;gap:12px;align-items:center;margin-bottom:16px">' +
+        '<div style="width:54px;height:54px;border-radius:14px;flex-shrink:0;background:radial-gradient(circle at 30% 30%,#57b6ff,#2a5db0);box-shadow:0 0 14px rgba(84,158,255,.4)"></div>' +
+        '<div><b style="font-size:16px">'+s.s+' — '+s.ct+' ct lab-grown</b><br>' +
+        '<span style="color:var(--muted);font-size:12px">'+s.sku+' · '+s.cert+' · BIS-hallmarked 18k gold setting</span></div>' +
+      '</div>' +
+      '<div class="bar" style="margin-bottom:14px"><i style="width:'+(55+idx*6)+'%"></i></div>' +
+      '<div class="chain">';
+    for (var i=0;i<steps.length;i++){
+      html += '<div class="node '+(steps[i].on?'ok':'')+'"><div class="t">'+steps[i].t+'</div><b>'+steps[i].b+'</b><span>'+steps[i].loc+'</span></div>';
+    }
+    html += '</div>';
+    if (s.st !== "AT CERT" && s.loc.indexOf("Delhi") === -1){
+      html += '<div style="margin-top:10px;background:rgba(110,168,255,.08);border:1px solid rgba(110,168,255,.35);border-radius:9px;padding:9px 11px;font-size:11.5px;color:var(--accent)">This stone isn’t at the current store — available at Bengaluru MG Road · 2 in stock · here in 48 hrs · request at any store checkout</div>';
+    }
+    html += '<div style="margin-top:14px;font-size:12px;color:var(--muted)">Certificate + ethical-sourcing dossier auto-linked · customs chain verified · visible to customer in app</div>';
+    $("stoneDetail").innerHTML = html;
+  }
+  $("stoneSearch").addEventListener("input", function(e){ renderStones(e.target.value); });
+  window.selectStone = selectStone;
+  renderStones();
+  renderDetail(1);
+  selectStone(1);
+
+  /* ---------- stores ---------- */
+  function renderStores(){
+    var html = "";
+    for (var i=0;i<stores.length;i++){
+      var s = stores[i];
+      var color = s.h>86 ? "var(--good)" : (s.h>82 ? "var(--warn)" : "var(--bad)");
+      var alertCls = s.alerts>4 ? "warn" : "gold";
+      html += '<div class="storecard'+(i===0?' sel':'')+'" onclick="window.selStore(this,'+i+')">' +
+              '<div class="top"><h4>'+s.n+'</h4><div class="score" style="color:'+color+'">'+s.h+'</div></div>' +
+              '<div style="color:var(--muted);font-size:12px;margin:6px 0">MTD ₹'+s.sc+' L · turns '+s.turns+' · '+s.sku+' SKUs</div>' +
+              '<div style="display:flex;gap:6px"><span class="badge ok">Synced</span><span class="badge '+alertCls+'">'+s.alerts+' open alerts</span></div>' +
+              '</div>';
+    }
+    $("storeGrid").innerHTML = html;
+  }
+  window.selStore = function(el, idx){
+    var cards = document.querySelectorAll(".storecard");
+    for (var i=0;i<cards.length;i++) cards[i].classList.remove("sel");
+    el.classList.add("sel");
+    showToast("Opened ops cockpit for "+stores[idx].n);
+  };
+  renderStores();
+
+  (function(){
+    var html = "";
+    for (var i=0;i<repl.length;i++){
+      var r = repl[i];
+      html += '<div class="alrt"><span class="tag '+(r.lv==="high"?"warn":"gold")+'">'+r.lv.toUpperCase()+'</span>' +
+              '<div style="flex:1"><b>'+r.sto+' — '+r.sku+'</b><span>'+r.q+' · '+r.why+'</span></div>' +
+              '<button class="btn ghost" style="padding:6px 12px;font-size:11.5px" onclick="window.approveShip(this)">Approve</button></div>';
+    }
+    $("replList").innerHTML = html;
+  })();
+  window.approveShip = function(btn){
+    btn.textContent = "✓ Shipped";
+    btn.style.borderColor = "var(--good)";
+    btn.style.color = "var(--good)";
+    showToast("Transfer dispatched — store ETA 1 day · warehouse notified");
+  };
+
+  /* ---------- checkout demo ---------- */
+  var step = 0;
+  var ckInterval = null;
+  var ckStart = 0;
+  var timers = null;
+  window.resetCheckout = function(){
+    step = 0;
+    setSteps("on","","");
+    $("nextBtn").textContent = "Start scan →";
+    $("ckprog").querySelector("i").style.width = "6%";
+    $("ckstatus").textContent = "Waiting to start scan…";
+    $("cktime").textContent = "0:00";
+    $("stepNote").textContent = "Step 1: scan stone serial → pre-filled price matrix &amp; customer auto-load TRY IT";
+    clearTimer();
+  };
+  function clearTimer(){
+    if (ckInterval) { clearInterval(ckInterval); ckInterval = null; }
+  }
+  function setSteps(a,b,c){
+    var cls = [a,b,c];
+    for (var i=0;i<3;i++){
+      var node = $("st"+(i+1));
+      node.classList.remove("on","done");
+      if (cls[i]==="on") node.classList.add("on");
+      if (cls[i]==="done") node.classList.add("done");
+    }
+  }
+  function startTimer(){
+    ckStart = Date.now();
+    clearTimer();
+    ckInterval = setInterval(function(){
+      var s = Math.floor((Date.now()-ckStart)/1000);
+      $("cktime").textContent = Math.floor(s/60)+":"+("0"+(s%60)).slice(-2);
+    },250);
+  }
+  window.checkoutNext = function(){
+    step++;
+    if (step===1){
+      setSteps("done","on","");
+      $("ckstatus").textContent = "Fetching pricing matrix + digital certificate…";
+      $("stepNote").textContent = "Step 2: certificates, price &amp; discounts auto-fill — no manual typing";
+      $("nextBtn").textContent = "Confirm sale →";
+      animateBar(45);
+    } else if (step===2){
+      setSteps("done","done","on");
+      $("ckstatus").textContent = "Invoice + e-certificate generated · customer SMS sent";
+      $("stepNote").textContent = "Step 3: closing the sale — zero data re-entry, handover to post-purchase";
+      $("nextBtn").textContent = "Finalize";
+      animateBar(95);
+      clearTimer();
+    } else {
+      $("ckstatus").textContent = "Sale complete — invoice #INV-88431 · chain-of-custody shared";
+      $("nextBtn").disabled = true;
+      $("stepNote").innerHTML = '<span style="color:var(--good)">Done in <b id="finalTime">04:42</b> — returned to the customer experience.</span>';
+      animateBar(100);
+      showToast("Sale recorded live — MIS updated in real time");
+    }
+  };
+  function animateBar(w){
+    $("ckprog").querySelector("i").style.width = w + "%";
+  }
+  resetCheckout();
+  $("nextBtn").addEventListener("click", function(){
+    if (step===0) startTimer();
+  });
+  function bindRestart(){
+    var b = document.querySelector("#v-checkout .btn.ghost");
+    b.addEventListener("click", resetCheckout);
+  }
+  /* first click of nextBtn starts the timer */
+  var first = true;
+  var origNext = window.checkoutNext;
+  window.checkoutNext = function(){
+    if (first) { startTimer(); first = false; }
+    origNext();
+  };
+  bindRestart();
+
+  /* ---------- integration spine: live event feed ---------- */
+  var evtLog = $("evtLog");
+  var evtPool = [
+    { t:"SALE",     c:"g", d:"K-2107 sold · Delhi CP — SGL cert attached to invoice",      s:"+₹1,24,500" },
+    { t:"SCAN",     c:"w", d:"Ring RNG-0891-C scanned at Mumbai Bandra counter",          s:"" },
+    { t:"CERT",     c:"w", d:"K-1021 returned from SGL Lab — batch #2210 updated",        s:"" },
+    { t:"TRANSIT",  c:"w", d:"TR-8841 left Bengaluru DC for Delhi CP",                    s:"ETA 1d" },
+    { t:"REPLENISH",c:"g", d:"Pune auto-replenished 6× RNG-0891-C — festival pulse +27%", s:"auto" },
+    { t:"TRACE",    c:"g", d:"Customer opened stone journey in app — custody viewed",      s:"" },
+    { t:"BILL",     c:"w", d:"Checkout finished in 4:18 at Delhi CP (target <5:00)",       s:"" },
+    { t:"STOCK",    c:"r", d:"Jaipur at shelf-risk on 3 SKUs — auto reallocation raised",  s:"" },
+    { t:"BUYBACK",  c:"g", d:"Buyback voucher VB-22911 generated — NEFT in 48 hrs",        s:"" },
+    { t:"MIS",      c:"w", d:"Cockpit refreshed — exec view at 30-sec granularity",        s:"" }
+  ];
+  var evtIdx = 0;
+  function clockNow(){
+    var d = new Date();
+    return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)+":"+("0"+d.getSeconds()).slice(-2);
+  }
+  function tickEvt(){
+    var e = evtPool[evtIdx % evtPool.length]; evtIdx++;
+    var row = '<div class="evt-row"><span class="tag '+e.c+'">'+e.t+'</span>' +
+      '<div style="flex:1;min-width:0"><b style="font-size:11.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.d+'</b></div>' +
+      (e.s ? '<span style="color:var(--gold2);font-size:11px">'+e.s+'</span>' : '') +
+      '<span class="ts">'+clockNow()+'</span></div>';
+    var before = evtLog.innerHTML;
+    evtLog.innerHTML = row + before;
+    while (evtLog.children.length > 7) evtLog.removeChild(evtLog.lastChild);
+  }
+  for (var si=0; si<6; si++) tickEvt();
+  setInterval(tickEvt, 2300);
+
+  /* ---------- scale command ---------- */
+  function scaleCalc(n){
+    var d = Math.max(0, Math.min(1, (n-7)/73));
+    return {
+      run: Math.round((0.42 + d*0.08) * n * 12),
+      stones: Math.round(1463*n),
+      cells: n*1200,
+      auto: Math.round(20 + d*65),
+      turns: (2.3 + d*1.1).toFixed(1),
+      nps: Math.round(57 + d*14)
+    };
+  }
+  function updateScale(){
+    var n = parseInt($("sSlider").value,10);
+    var m = scaleCalc(n);
+    $("sStoresBig").textContent = n;
+    $("sRun").textContent = m.run;
+    $("sStones").textContent = m.stones.toLocaleString("en-IN");
+    $("sCells").textContent = m.cells.toLocaleString("en-IN");
+    $("sAuto").textContent = m.auto + "%";
+    $("sTurns").textContent = m.turns;
+    $("sNps").textContent = m.nps;
+    $("sPhase").textContent = n<20 ? "Phase 0 · Stabilize" : (n<50 ? "Phase 1 · Connect" : (n===80 ? "Phase 3 · Plan reached" : "Phase 2 · Optimize"));
+  }
+  $("sSlider").addEventListener("input", updateScale);
+  var scaleRunInt = null;
+  window.runScale = function(){
+    if (scaleRunInt) return;
+    var v = parseInt($("sSlider").value,10) || 7;
+    scaleRunInt = setInterval(function(){
+      v += 2;
+      if (v > 80){ v = 80; clearInterval(scaleRunInt); scaleRunInt = null; }
+      $("sSlider").value = v;
+      updateScale();
+      if (!scaleRunInt) showToast("80 stores — ₹480 Cr run-rate · phase gates all green");
+    }, 45);
+  };
+  window.resetScale = function(){
+    if (scaleRunInt){ clearInterval(scaleRunInt); scaleRunInt = null; }
+    $("sSlider").value = 7;
+    updateScale();
+  };
+  updateScale();
+
+  /* ---------- customer journey ---------- */
+  window.toggleCustody = function(btn){
+    var box = $("custodyBox");
+    var show = box.style.display === "none";
+    box.style.display = show ? "block" : "none";
+    btn.textContent = show ? "Hide stone’s journey" : "View my stone’s journey";
+  };
+  window.scanQR = function(){
+    $("qrBox").innerHTML =
+      '<div style="background:var(--panel);border:1px solid rgba(61,220,151,.4);border-radius:10px;padding:12px;text-align:center">' +
+      '<span class="badge ok">VERIFIED ✓</span>' +
+      '<div style="font-size:12px;margin-top:8px">SGL · HG-68378 · 0.82 ct · VS1 · BIS-hallmarked 18k</div>' +
+      '<div style="font-size:10.5px;color:var(--muted);margin-top:4px">matches Stone Twin · custody intact · lab record linked</div></div>';
+    showToast("QR verified — certificate matches the Stone Twin exactly");
+  };
+  window.bookTryOn = function(btn){
+    btn.textContent = "✓ Booked";
+    btn.style.borderColor = "var(--good)";
+    btn.style.color = "var(--good)";
+    showToast("Video try-on booked — Thu 6:30 PM · concierge Bandra");
+  };
+  var consentOn = true;
+  window.toggleConsent = function(){
+    consentOn = !consentOn;
+    $("consent").classList.toggle("off", !consentOn);
+    showToast(consentOn ? "Marketing OK — consent recorded (DPDP)" : "Marketing OFF — data stays private (DPDP)");
+  };
+
+  /* ---------- live tickers ---------- */
+  var rev = 4.28;
+  setInterval(function(){
+    rev += 0.004 + Math.random()*0.006;
+    $("revVal").textContent = rev.toFixed(2);
+    var m = 4 + Math.floor(Math.random()*59);
+    $("billVal").textContent = "4:" + ("0"+m).slice(-2);
+  }, 4000);
+
+})();
+</script>
+</body>
+</html>
