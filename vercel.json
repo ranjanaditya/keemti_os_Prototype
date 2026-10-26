@@ -1,0 +1,9 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/KeemtiOS-Prototype-LaConquista2026", "destination": "/", "permanent": true },
+    { "source": "/KeemtiOS-Prototype-LaConquista2026.html", "destination": "/", "permanent": true },
+    { "source": "/R1_ISBians_ISB.pdf", "destination": "/docs/KeemtiOS-LaConquista2026-Deck.pdf", "permanent": true }
+  ]
+}
